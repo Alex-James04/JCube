@@ -13,3 +13,6 @@ Thumbs.db
 
 # Distribution-related files
 dist/
+
+# Java files
+*.class
