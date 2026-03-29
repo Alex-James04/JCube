@@ -10,3 +10,6 @@ target/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Distribution-related files
+dist/
