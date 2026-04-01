@@ -1,11 +1,11 @@
 package model;
 
-public class UserSettings {
+public class Settings {
 
     private String theme;
     private boolean showScramble;
 
-    public UserSettings(String theme, boolean showScramble) {
+    public Settings(String theme, boolean showScramble) {
         this.theme = theme;
         this.showScramble = showScramble;
     }
