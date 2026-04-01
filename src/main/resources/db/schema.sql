@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS solves (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
     time_ms    INTEGER NOT NULL,
+    penalty    TEXT    NOT NULL DEFAULT 'none',
     scramble   TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
