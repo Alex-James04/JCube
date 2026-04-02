@@ -16,8 +16,6 @@
 
   <!-- ====================================================
        GLOBAL PROPERTIES
-       Add library versions here so they're easy to update
-       in one place rather than hunting through dependencies
        ==================================================== -->
   <properties>
     <maven.compiler.source>25</maven.compiler.source>
@@ -95,6 +93,7 @@
             <phase>package</phase>
             <goals><goal>shade</goal></goals>
             <configuration>
+            <createDependencyReducedPom>false</createDependencyReducedPom>
               <transformers>
                 <transformer implementation=
                   "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
