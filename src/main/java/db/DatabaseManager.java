@@ -12,7 +12,7 @@ import java.sql.SQLException;
 public class DatabaseManager {
 
     private static final String DB_PATH = resolveDatabasePath();
-    private static Connection connection;
+    private static boolean initialized = false;
 
     private static String resolveDatabasePath() {
         String os = System.getProperty("os.name").toLowerCase();
@@ -45,18 +45,15 @@ public class DatabaseManager {
     }
 
     public static Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
-            try {
-                connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
-            } catch (SQLException e) {
-                throw new RuntimeException("Failed to connect to database", e);
-            }
-            initializeDatabase(connection);
+        Connection conn = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        if (!initialized) {
+            initializeDatabase(conn);
+            initialized = true;
         }
-        return connection;
+        return conn;
     }
 
-    private static void initializeDatabase(Connection connection) throws SQLException {
+    private static void initializeDatabase(Connection conn) throws SQLException {
         try (InputStream inputStream = DatabaseManager.class.getResourceAsStream("/db/schema.sql")) {
             if (inputStream == null) {
                 throw new RuntimeException("schema.sql not found on classpath");
@@ -65,17 +62,11 @@ public class DatabaseManager {
             for (String statement : sql.split(";")) {
                 String trimmed = statement.trim();
                 if (!trimmed.isEmpty()) {
-                    connection.createStatement().execute(trimmed);
+                    conn.createStatement().execute(trimmed);
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to read schema.sql", e);
-        }
-    }
-
-    public static void close() throws SQLException {
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
         }
     }
 }

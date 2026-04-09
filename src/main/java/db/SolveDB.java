@@ -78,7 +78,6 @@ public class SolveDB {
         String sql = "UPDATE solves SET penalty = ? WHERE id = ?";
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setString(1, penalty.name().toLowerCase());
             stmt.setInt(2, id);
             stmt.executeUpdate();
