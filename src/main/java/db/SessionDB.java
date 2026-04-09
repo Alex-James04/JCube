@@ -75,7 +75,6 @@ public class SessionDB {
         String sql = "UPDATE sessions SET name = ? WHERE id = ?";
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setString(1, name);
             stmt.setInt(2, id);
             stmt.executeUpdate();
