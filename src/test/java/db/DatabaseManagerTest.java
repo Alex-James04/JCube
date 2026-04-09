@@ -4,24 +4,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DatabaseManagerTest {
-
-    @BeforeEach
-    void setUp() throws SQLException {
-        DatabaseManager.setTestConnection();
-    }
-
-    @AfterEach
-    void tearDown() throws SQLException {
-        DatabaseManager.resetConnection();
-    }
+class DatabaseManagerTest extends DatabaseTestBase {
 
     @Test
     void cubesTableExists() throws SQLException {

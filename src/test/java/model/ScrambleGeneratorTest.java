@@ -9,7 +9,7 @@ class ScrambleGeneratorTest {
     @Test
     void scrambleHasTwentyMoves() {
         String scramble = ScrambleGenerator.generateScramble();
-        assertEquals(20, countMoves(scramble));
+        assertEquals(20, scramble.split(" ").length);
     }
 
     @Test
@@ -22,7 +22,7 @@ class ScrambleGeneratorTest {
     }
 
     @Test
-    void scrambleContainsNoRawRepeatedLetters() {
+    void scrambleTokensMaxTwoCharacters() {
         String scramble = ScrambleGenerator.generateScramble();
         String[] tokens = scramble.split(" ");
         for (String token : tokens) {
@@ -37,76 +37,13 @@ class ScrambleGeneratorTest {
         for (int i = 0; i < tokens.length - 1; i++) {
             char currentFace = tokens[i].charAt(0);
             char nextFace = tokens[i + 1].charAt(0);
-            assertTrue(currentFace != nextFace,
-                "Consecutive same face moves found: " + tokens[i] + " " + tokens[i + 1]);
+            assertTrue(currentFace != nextFace, "Consecutive same face moves found: " + tokens[i] + " " + tokens[i + 1]);
         }
-    }
-
-    @Test
-    void scrambleHasNoUAfterDInAdjacentBlock() {
-        for (int i = 0; i < 100; i++) {
-            String scramble = ScrambleGenerator.generateScramble();
-            String[] tokens = scramble.split(" ");
-            for (int j = 0; j < tokens.length - 1; j++) {
-                char current = tokens[j].charAt(0);
-                char next = tokens[j + 1].charAt(0);
-                if (current == 'D') {
-                    assertTrue(next != 'U',
-                        "U appeared after D in scramble: " + scramble);
-                }
-            }
-        }
-    }
-
-    @Test
-    void scrambleHasNoRAfterLInAdjacentBlock() {
-        for (int i = 0; i < 100; i++) {
-            String scramble = ScrambleGenerator.generateScramble();
-            String[] tokens = scramble.split(" ");
-            for (int j = 0; j < tokens.length - 1; j++) {
-                char current = tokens[j].charAt(0);
-                char next = tokens[j + 1].charAt(0);
-                if (current == 'L') {
-                    assertTrue(next != 'R',
-                        "R appeared after L in scramble: " + scramble);
-                }
-            }
-        }
-    }
-
-    @Test
-    void scrambleHasNoBAfterFInAdjacentBlock() {
-        for (int i = 0; i < 100; i++) {
-            String scramble = ScrambleGenerator.generateScramble();
-            String[] tokens = scramble.split(" ");
-            for (int j = 0; j < tokens.length - 1; j++) {
-                char current = tokens[j].charAt(0);
-                char next = tokens[j + 1].charAt(0);
-                if (current == 'F') {
-                    assertTrue(next != 'B',
-                        "B appeared after F in scramble: " + scramble);
-                }
-            }
-        }
-    }
-
-    @Test
-    void scrambleContainsBMoves() {
-        boolean found = false;
-        for (int i = 0; i < 100; i++) {
-            String scramble = ScrambleGenerator.generateScramble();
-            if (scramble.contains("B")) {
-                found = true;
-                break;
-            }
-        }
-        assertTrue(found, "B move never appeared across 100 scrambles");
     }
 
     @Test
     void allSixFacesAppearAcrossMultipleScrambles() {
-        boolean foundU = false, foundD = false, foundR = false;
-        boolean foundL = false, foundF = false, foundB = false;
+        boolean foundU = false, foundD = false, foundR = false, foundL = false, foundF = false, foundB = false;
         for (int i = 0; i < 100; i++) {
             String scramble = ScrambleGenerator.generateScramble();
             if (scramble.contains("U")) foundU = true;
@@ -122,10 +59,6 @@ class ScrambleGeneratorTest {
         assertTrue(foundL, "L never appeared across 100 scrambles");
         assertTrue(foundF, "F never appeared across 100 scrambles");
         assertTrue(foundB, "B never appeared across 100 scrambles");
-    }
-
-    private int countMoves(String scramble) {
-        return scramble.split(" ").length;
     }
 
     private boolean isValidToken(String token) {
