@@ -52,7 +52,7 @@ public class SessionDB {
     }
 
     public List<Session> findByCubeId(int cubeId) {
-        String sql = "SELECT id, cube_id, name, created_at FROM sessions WHERE cube_id = ? ORDER BY created_at ASC";
+        String sql = "SELECT id, cube_id, name, created_at FROM sessions WHERE cube_id = ? ORDER BY created_at ASC, id ASC";
         List<Session> sessions = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
