@@ -55,7 +55,7 @@ public class SolveDB {
     }
 
     public List<Solve> findBySessionId(int sessionId) {
-        String sql = "SELECT id, session_id, time_ms, penalty, scramble, created_at FROM solves WHERE session_id = ? ORDER BY created_at ASC, id ASC";
+        String sql = "SELECT id, session_id, time_ms, penalty, scramble, created_at FROM solves WHERE session_id = ? ORDER BY created_at ASC";
         List<Solve> solves = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

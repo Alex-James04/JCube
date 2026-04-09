@@ -51,7 +51,7 @@ public class CubeDB {
     }
 
     public List<Cube> findAll() {
-        String sql = "SELECT id, name, created_at FROM cubes ORDER BY created_at ASC, id ASC";
+        String sql = "SELECT id, name, created_at FROM cubes ORDER BY created_at ASC";
         List<Cube> cubes = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);

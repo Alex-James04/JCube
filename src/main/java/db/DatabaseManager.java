@@ -56,18 +56,6 @@ public class DatabaseManager {
         return connection;
     }
 
-    public static void setTestConnection() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite::memory:");
-        initializeDatabase(connection);
-    }
-
-    public static void resetConnection() throws SQLException {
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
-        }
-        connection = null;
-    }
-
     private static void initializeDatabase(Connection connection) throws SQLException {
         try (InputStream inputStream = DatabaseManager.class.getResourceAsStream("/db/schema.sql")) {
             if (inputStream == null) {
