@@ -155,7 +155,7 @@ class SolveDBTest extends DatabaseTestBase {
     }
 
     @Test
-    void updatePenaltyToDnfPersistsCorrectly() {
+    void updatePenaltyToDNFPersistsCorrectly() {
         Solve solve = new Solve(testSession.getId(), 10000, "R U R' U'");
         solveDB.insert(solve);
         solveDB.updatePenalty(solve.getId(), Penalty.DNF);

@@ -167,7 +167,7 @@ class SessionDBTest extends DatabaseTestBase {
     }
 
     @Test
-    void deleteCubeAlsoDeletesSession() {
+    void deleteCubeDeletesSession() {
         Session session = new Session(testCube.getId(), "Morning");
         sessionDB.insert(session);
         cubeDB.delete(testCube.getId());
