@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class DatabaseManager {
 
@@ -35,22 +36,20 @@ public class DatabaseManager {
         } catch (IOException e) {
             throw new RuntimeException("Could not create JCube data directory: " + dataDir, e);
         }
-        String separator;
         if (os.contains("win")) {
-            separator = "\\";
+            return dataDir + "\\jcube.db";
         } else {
-            separator = "/";
+            return dataDir + "/jcube.db";
         }
-        return dataDir + separator + "jcube.db";
     }
 
     public static Connection getConnection() throws SQLException {
-        Connection conn = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
         if (!initialized) {
-            initializeDatabase(conn);
+            initializeDatabase(connection);
             initialized = true;
         }
-        return conn;
+        return connection;
     }
 
     private static void initializeDatabase(Connection conn) throws SQLException {
@@ -62,7 +61,9 @@ public class DatabaseManager {
             for (String statement : sql.split(";")) {
                 String trimmed = statement.trim();
                 if (!trimmed.isEmpty()) {
-                    conn.createStatement().execute(trimmed);
+                    try (Statement stmt = conn.createStatement()) {
+                        stmt.execute(trimmed);
+                    }
                 }
             }
         } catch (IOException e) {

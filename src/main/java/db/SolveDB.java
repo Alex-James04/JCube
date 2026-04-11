@@ -19,37 +19,47 @@ public class SolveDB {
             throw new IllegalArgumentException("Solve is already persisted: " + solve);
         }
         String sql = "INSERT INTO solves (session_id, time_ms, penalty, scramble) VALUES (?, ?, ?, ?)";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             stmt.setInt(1, solve.getSessionId());
             stmt.setLong(2, solve.getTimeMs());
             stmt.setString(3, solve.getPenalty().name().toLowerCase());
             stmt.setString(4, solve.getScramble());
             stmt.executeUpdate();
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    solve.setId(keys.getInt(1));
-                } else {
-                    throw new RuntimeException("Insert succeeded but no generated key was returned");
-                }
+            ResultSet keys = stmt.getGeneratedKeys();
+            if (keys.next()) {
+                solve.setId(keys.getInt(1));
+            } else {
+                throw new RuntimeException("Insert succeeded but no generated key was returned");
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to insert solve: " + solve, e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
     }
 
     public Optional<Solve> findById(int id) {
         String sql = "SELECT id, session_id, time_ms, penalty, scramble, created_at FROM solves WHERE id = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(fromRow(rs));
-                }
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(fromRow(rs));
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to find solve with id: " + id, e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
         return Optional.empty();
     }
@@ -57,16 +67,21 @@ public class SolveDB {
     public List<Solve> findBySessionId(int sessionId) {
         String sql = "SELECT id, session_id, time_ms, penalty, scramble, created_at FROM solves WHERE session_id = ? ORDER BY created_at ASC, id ASC";
         List<Solve> solves = new ArrayList<>();
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, sessionId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    solves.add(fromRow(rs));
-                }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                solves.add(fromRow(rs));
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to find solves for session with id: " + sessionId, e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
         return solves;
     }
@@ -76,50 +91,73 @@ public class SolveDB {
             throw new IllegalArgumentException("Cannot update a solve that is not persisted (id == -1)");
         }
         String sql = "UPDATE solves SET penalty = ? WHERE id = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, penalty.name().toLowerCase());
             stmt.setInt(2, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update penalty for solve with id: " + id, e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
     }
 
     public void delete(int id) {
         String sql = "DELETE FROM solves WHERE id = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete solve with id: " + id, e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
     }
 
     public void deleteAll(int sessionId) {
         String sql = "DELETE FROM solves WHERE session_id = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, sessionId);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete solves for session with id: " + sessionId, e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
     }
 
     public int count(int sessionId) {
         String sql = "SELECT COUNT(*) FROM solves WHERE session_id = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, sessionId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to count solves for session with id: " + sessionId, e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
         return 0;
     }
