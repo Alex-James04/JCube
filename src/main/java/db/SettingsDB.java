@@ -10,9 +10,11 @@ import model.Settings;
 public class SettingsDB {
     public Settings get() {
         String sql = "SELECT theme, show_scramble FROM settings WHERE id = 1";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return fromRow(rs);
             } else {
@@ -20,18 +22,28 @@ public class SettingsDB {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to retrieve settings", e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
     }
 
     public void update(Settings settings) {
         String sql = "UPDATE settings SET theme = ?, show_scramble = ? WHERE id = 1";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        try {
+            conn = DatabaseManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, settings.getTheme());
             stmt.setInt(2, settings.isShowScramble() ? 1 : 0);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update settings", e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) {}
+            }
         }
     }
 
