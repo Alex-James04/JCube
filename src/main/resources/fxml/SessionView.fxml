@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ui.SessionViewController">
+    <top>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="12" right="12" bottom="12" left="12"/>
+            </padding>
+            <Button text="Back" onAction="#handleBack"/>
+            <Label fx:id="headerLabel"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Add Session" onAction="#handleAddSession"/>
+        </HBox>
+    </top>
+    <center>
+        <ListView fx:id="sessionListView"/>
+    </center>
+</BorderPane>
