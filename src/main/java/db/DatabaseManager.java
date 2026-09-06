@@ -49,6 +49,11 @@ public class DatabaseManager {
             initializeDatabase(connection);
             initialized = true;
         }
+        // SQLite enforces foreign keys per-connection, not persistently in the DB file,
+        // so this must run on every connection, not just the one used for schema init.
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute("PRAGMA foreign_keys = ON");
+        }
         return connection;
     }
 
