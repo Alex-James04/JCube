@@ -12,7 +12,7 @@ import model.StatSpec;
 
 public class SettingsDB {
     public Settings get() {
-        String sql = "SELECT theme, show_scramble, spacebar_mode, inspection_mode, stat_specs FROM settings WHERE id = 1";
+        String sql = "SELECT theme, show_scramble, spacebar_mode, inspection_mode, stat_specs, confirm_deletes FROM settings WHERE id = 1";
         Connection conn = null;
         try {
             conn = DatabaseManager.getConnection();
@@ -33,7 +33,7 @@ public class SettingsDB {
     }
 
     public void update(Settings settings) {
-        String sql = "UPDATE settings SET theme = ?, show_scramble = ?, spacebar_mode = ?, inspection_mode = ?, stat_specs = ? WHERE id = 1";
+        String sql = "UPDATE settings SET theme = ?, show_scramble = ?, spacebar_mode = ?, inspection_mode = ?, stat_specs = ?, confirm_deletes = ? WHERE id = 1";
         Connection conn = null;
         try {
             conn = DatabaseManager.getConnection();
@@ -43,6 +43,7 @@ public class SettingsDB {
             stmt.setString(3, settings.getSpacebarMode().name());
             stmt.setString(4, settings.getInspectionMode().name());
             stmt.setString(5, StatSpec.encodeList(settings.getStatSpecs()));
+            stmt.setInt(6, settings.isConfirmDeletes() ? 1 : 0);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update settings", e);
@@ -59,6 +60,7 @@ public class SettingsDB {
         SpacebarMode spacebarMode = SpacebarMode.valueOf(rs.getString("spacebar_mode"));
         InspectionMode inspectionMode = InspectionMode.valueOf(rs.getString("inspection_mode"));
         var statSpecs = StatSpec.parseList(rs.getString("stat_specs"));
-        return new Settings(theme, showScramble, spacebarMode, inspectionMode, statSpecs);
+        boolean confirmDeletes = rs.getInt("confirm_deletes") == 1;
+        return new Settings(theme, showScramble, spacebarMode, inspectionMode, statSpecs, confirmDeletes);
     }
 }

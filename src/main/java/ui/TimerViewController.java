@@ -195,9 +195,7 @@ public class TimerViewController {
     }
 
     private void deleteSolve(Solve solve) {
-        Alert alert = new Alert(AlertType.CONFIRMATION, "Delete this solve?", ButtonType.YES, ButtonType.NO);
-        alert.setHeaderText(null);
-        alert.showAndWait().filter(ButtonType.YES::equals).ifPresent(response -> {
+        confirmThenRun("Delete this solve?", () -> {
             solveDB.delete(solve.getId());
             if (lastSolve != null && solve.getId() == lastSolve.getId()) {
                 lastSolve = null;
@@ -208,6 +206,16 @@ public class TimerViewController {
             }
             refresh();
         });
+    }
+
+    private void confirmThenRun(String message, Runnable action) {
+        if (!settings.isConfirmDeletes()) {
+            action.run();
+            return;
+        }
+        Alert alert = new Alert(AlertType.CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
+        alert.setHeaderText(null);
+        alert.showAndWait().filter(ButtonType.YES::equals).ifPresent(response -> action.run());
     }
 
     private void onSolveCompleted(long timeMs, Penalty penalty) {

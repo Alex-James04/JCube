@@ -24,6 +24,8 @@
 
             <CheckBox fx:id="showScrambleCheck" text="Show scramble during solves"/>
 
+            <CheckBox fx:id="confirmDeletesCheck" text="Confirm before deleting cubes, sessions, or solves"/>
+
             <Label text="Spacebar mechanics"/>
             <ChoiceBox fx:id="spacebarModeChoice"/>
 

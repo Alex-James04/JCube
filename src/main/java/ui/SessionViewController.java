@@ -20,8 +20,10 @@ import javafx.scene.layout.Region;
 
 import controller.AppController;
 import db.SessionDB;
+import db.SettingsDB;
 import model.Cube;
 import model.Session;
+import model.Settings;
 
 public class SessionViewController {
 
@@ -32,8 +34,10 @@ public class SessionViewController {
     private ListView<Session> sessionListView;
 
     private final SessionDB sessionDB = new SessionDB();
+    private final SettingsDB settingsDB = new SettingsDB();
     private AppController appController;
     private Cube cube;
+    private Settings settings;
 
     public void setAppController(AppController appController) {
         this.appController = appController;
@@ -47,6 +51,7 @@ public class SessionViewController {
 
     @FXML
     private void initialize() {
+        settings = settingsDB.get();
         sessionListView.setCellFactory(list -> new SessionCell());
     }
 
@@ -78,13 +83,20 @@ public class SessionViewController {
     }
 
     private void deleteSession(Session session) {
-        Alert alert = new Alert(AlertType.CONFIRMATION,
-                "Delete \"" + session.getName() + "\" and all of its solves?", ButtonType.YES, ButtonType.NO);
-        alert.setHeaderText(null);
-        alert.showAndWait().filter(ButtonType.YES::equals).ifPresent(response -> {
+        confirmThenRun("Delete \"" + session.getName() + "\" and all of its solves?", () -> {
             sessionDB.delete(session.getId());
             refresh();
         });
+    }
+
+    private void confirmThenRun(String message, Runnable action) {
+        if (!settings.isConfirmDeletes()) {
+            action.run();
+            return;
+        }
+        Alert alert = new Alert(AlertType.CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
+        alert.setHeaderText(null);
+        alert.showAndWait().filter(ButtonType.YES::equals).ifPresent(response -> action.run());
     }
 
     private class SessionCell extends ListCell<Session> {

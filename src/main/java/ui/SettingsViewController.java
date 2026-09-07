@@ -37,6 +37,9 @@ public class SettingsViewController {
     private CheckBox showScrambleCheck;
 
     @FXML
+    private CheckBox confirmDeletesCheck;
+
+    @FXML
     private ChoiceBox<SpacebarMode> spacebarModeChoice;
 
     @FXML
@@ -63,6 +66,12 @@ public class SettingsViewController {
         showScrambleCheck.setSelected(settings.isShowScramble());
         showScrambleCheck.selectedProperty().addListener((obs, oldValue, newValue) -> {
             settings.setShowScramble(newValue);
+            settingsDB.update(settings);
+        });
+
+        confirmDeletesCheck.setSelected(settings.isConfirmDeletes());
+        confirmDeletesCheck.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            settings.setConfirmDeletes(newValue);
             settingsDB.update(settings);
         });
 

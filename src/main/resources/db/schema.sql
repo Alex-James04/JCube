@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS settings (
 ALTER TABLE settings ADD COLUMN spacebar_mode TEXT NOT NULL DEFAULT 'WCA';
 ALTER TABLE settings ADD COLUMN inspection_mode TEXT NOT NULL DEFAULT 'WCA';
 ALTER TABLE settings ADD COLUMN stat_specs TEXT NOT NULL DEFAULT 'AO5,AO12,MEAN,PB';
+ALTER TABLE settings ADD COLUMN confirm_deletes INTEGER NOT NULL DEFAULT 1;
 
 -- Seed the settings row so it always exists
 INSERT OR IGNORE INTO settings (id, theme, show_scramble)

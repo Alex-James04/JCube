@@ -20,7 +20,9 @@ import javafx.scene.layout.Region;
 
 import controller.AppController;
 import db.CubeDB;
+import db.SettingsDB;
 import model.Cube;
+import model.Settings;
 
 public class CubeViewController {
 
@@ -28,7 +30,9 @@ public class CubeViewController {
     private ListView<Cube> cubeListView;
 
     private final CubeDB cubeDB = new CubeDB();
+    private final SettingsDB settingsDB = new SettingsDB();
     private AppController appController;
+    private Settings settings;
 
     public void setAppController(AppController appController) {
         this.appController = appController;
@@ -36,6 +40,7 @@ public class CubeViewController {
 
     @FXML
     private void initialize() {
+        settings = settingsDB.get();
         cubeListView.setCellFactory(list -> new CubeCell());
         refresh();
     }
@@ -63,13 +68,20 @@ public class CubeViewController {
     }
 
     private void deleteCube(Cube cube) {
-        Alert alert = new Alert(AlertType.CONFIRMATION,
-                "Delete \"" + cube.getName() + "\" and all of its sessions and solves?", ButtonType.YES, ButtonType.NO);
-        alert.setHeaderText(null);
-        alert.showAndWait().filter(ButtonType.YES::equals).ifPresent(response -> {
+        confirmThenRun("Delete \"" + cube.getName() + "\" and all of its sessions and solves?", () -> {
             cubeDB.delete(cube.getId());
             refresh();
         });
+    }
+
+    private void confirmThenRun(String message, Runnable action) {
+        if (!settings.isConfirmDeletes()) {
+            action.run();
+            return;
+        }
+        Alert alert = new Alert(AlertType.CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
+        alert.setHeaderText(null);
+        alert.showAndWait().filter(ButtonType.YES::equals).ifPresent(response -> action.run());
     }
 
     private class CubeCell extends ListCell<Cube> {
