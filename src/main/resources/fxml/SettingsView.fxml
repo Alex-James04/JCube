@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="rootPane"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ui.SettingsViewController">
+    <center>
+        <VBox spacing="12">
+            <padding>
+                <Insets top="16" right="16" bottom="16" left="16"/>
+            </padding>
+
+            <Label text="Theme"/>
+            <ChoiceBox fx:id="themeChoice"/>
+
+            <CheckBox fx:id="showScrambleCheck" text="Show scramble during solves"/>
+
+            <Label text="Spacebar mechanics"/>
+            <ChoiceBox fx:id="spacebarModeChoice"/>
+
+            <Label text="Inspection timing"/>
+            <ChoiceBox fx:id="inspectionModeChoice"/>
+
+            <Label text="Stats shown on the timer screen"/>
+            <ListView fx:id="statsListView" prefHeight="160"/>
+            <Button text="Add Stat" onAction="#handleAddStat"/>
+        </VBox>
+    </center>
+</BorderPane>

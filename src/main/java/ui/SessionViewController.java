@@ -106,7 +106,7 @@ public class SessionViewController {
 
             setOnMouseClicked(event -> {
                 if (getItem() != null) {
-                    appController.showTimerPlaceholder(getItem());
+                    appController.showTimer(getItem());
                 }
             });
         }

@@ -34,9 +34,14 @@ public class MainWindow {
 
     private static void applyTheme(Scene scene) {
         Settings settings = new SettingsDB().get();
-        String stylesheet = "dark".equalsIgnoreCase(settings.getTheme())
-                ? "/css/dark.css"
-                : "/css/light.css";
+        applyTheme(scene, settings.getTheme());
+    }
+
+    // Also used to hot-swap the theme from the Settings screen, and to keep dialog windows
+    // consistent with whichever theme is currently active.
+    public static void applyTheme(Scene scene, String theme) {
+        String stylesheet = "dark".equalsIgnoreCase(theme) ? "/css/dark.css" : "/css/light.css";
+        scene.getStylesheets().clear();
         scene.getStylesheets().add(MainWindow.class.getResource(stylesheet).toExternalForm());
     }
 }

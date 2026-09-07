@@ -14,7 +14,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import db.SettingsDB;
-import model.Settings;
 
 public class NameDialogController {
 
@@ -57,9 +56,7 @@ public class NameDialogController {
             stage.initModality(Modality.APPLICATION_MODAL);
 
             Scene scene = new Scene(root);
-            Settings settings = new SettingsDB().get();
-            String stylesheet = "dark".equalsIgnoreCase(settings.getTheme()) ? "/css/dark.css" : "/css/light.css";
-            scene.getStylesheets().add(NameDialogController.class.getResource(stylesheet).toExternalForm());
+            MainWindow.applyTheme(scene, new SettingsDB().get().getTheme());
             stage.setScene(scene);
 
             stage.showAndWait();
