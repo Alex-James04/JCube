@@ -68,11 +68,22 @@ public class DatabaseManager {
                 if (!trimmed.isEmpty()) {
                     try (Statement stmt = conn.createStatement()) {
                         stmt.execute(trimmed);
+                    } catch (SQLException e) {
+                        // SQLite has no "ADD COLUMN IF NOT EXISTS"; schema.sql re-runs its ALTER TABLE
+                        // statements on every startup, so a duplicate-column error just means it's already applied.
+                        if (!isDuplicateColumnError(e)) {
+                            throw e;
+                        }
                     }
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to read schema.sql", e);
         }
+    }
+
+    private static boolean isDuplicateColumnError(SQLException e) {
+        String message = e.getMessage();
+        return message != null && message.toLowerCase().contains("duplicate column name");
     }
 }

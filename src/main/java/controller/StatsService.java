@@ -6,8 +6,19 @@ import java.util.List;
 import java.util.Optional;
 
 import model.Solve;
+import model.StatSpec;
 
 public class StatsService {
+
+    // Dispatches to averageOf/mean/personalBest based on the spec's type, so callers can drive
+    // an arbitrary, user-configured list of StatSpecs without a switch of their own.
+    public Optional<Long> compute(StatSpec spec, List<Solve> solves) {
+        return switch (spec.type()) {
+            case AVERAGE -> averageOf(solves, spec.windowSize());
+            case MEAN -> mean(solves);
+            case PB -> personalBest(solves);
+        };
+    }
 
     // Average of the most recent windowSize solves (ao5 = 5, ao12 = 12, etc.); solves must be oldest-first, as SolveDB returns them.
     public Optional<Long> averageOf(List<Solve> solves, int windowSize) {

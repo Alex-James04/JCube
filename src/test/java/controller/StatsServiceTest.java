@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import model.Penalty;
 import model.Solve;
+import model.StatSpec;
 
 class StatsServiceTest {
 
@@ -122,5 +123,25 @@ class StatsServiceTest {
     @Test
     void personalBestIsEmptyForNoSolves() {
         assertFalse(stats.personalBest(new ArrayList<>()).isPresent());
+    }
+
+    // ---- compute (StatSpec dispatch) ----
+
+    @Test
+    void computeDispatchesAverageSpecToAverageOf() {
+        List<Solve> window = solves(solve(10000), solve(11000), solve(12000), solve(13000), solve(14000));
+        assertEquals(stats.averageOf(window, 5), stats.compute(StatSpec.average(5), window));
+    }
+
+    @Test
+    void computeDispatchesMeanSpecToMean() {
+        List<Solve> all = solves(solve(10000), solve(20000), solve(30000));
+        assertEquals(stats.mean(all), stats.compute(StatSpec.mean(), all));
+    }
+
+    @Test
+    void computeDispatchesPbSpecToPersonalBest() {
+        List<Solve> all = solves(solve(15000), dnf(1), solve(9000));
+        assertEquals(stats.personalBest(all), stats.compute(StatSpec.pb(), all));
     }
 }
