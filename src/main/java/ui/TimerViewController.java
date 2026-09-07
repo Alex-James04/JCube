@@ -1,5 +1,8 @@
 package ui;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,8 +28,10 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.stage.FileChooser;
 
 import controller.AppController;
+import controller.SolveCsvService;
 import controller.StatsService;
 import controller.TimeController;
 import db.CubeDB;
@@ -70,6 +75,7 @@ public class TimerViewController {
     private final SolveDB solveDB = new SolveDB();
     private final CubeDB cubeDB = new CubeDB();
     private final StatsService statsService = new StatsService();
+    private final SolveCsvService csvService = new SolveCsvService();
 
     private final EventHandler<KeyEvent> keyPressedHandler = this::handleKeyPressed;
     private final EventHandler<KeyEvent> keyReleasedHandler = this::handleKeyReleased;
@@ -141,6 +147,53 @@ public class TimerViewController {
     private void handleBack() {
         Cube cube = cubeDB.findById(session.getCubeId()).orElseThrow();
         appController.showSessions(cube);
+    }
+
+    @FXML
+    private void handleExport() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Export Solves");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV files", "*.csv"));
+        chooser.setInitialFileName(session.getName() + ".csv");
+        File file = chooser.showSaveDialog(rootPane.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+        try {
+            String content = csvService.export(solveDB.findBySessionId(session.getId()));
+            Files.writeString(file.toPath(), content);
+        } catch (IOException e) {
+            showError("Failed to export: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleImport() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Import Solves");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV/text files", "*.csv", "*.txt"));
+        File file = chooser.showOpenDialog(rootPane.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+        try {
+            String content = Files.readString(file.toPath());
+            List<Solve> imported = csvService.parse(content, session.getId());
+            for (Solve solve : imported) {
+                solveDB.insert(solve);
+            }
+            refresh();
+        } catch (IOException e) {
+            showError("Failed to read file: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            showError("Failed to parse file: " + e.getMessage());
+        }
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 
     @FXML

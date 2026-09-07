@@ -18,7 +18,12 @@ public class SolveDB {
         if (solve.isPersisted()) {
             throw new IllegalArgumentException("Solve is already persisted: " + solve);
         }
-        String sql = "INSERT INTO solves (session_id, time_ms, penalty, scramble) VALUES (?, ?, ?, ?)";
+        // Live solves are constructed with no createdAt so the schema's CURRENT_TIMESTAMP default
+        // applies; imported solves carry an explicit historical timestamp that must be preserved.
+        boolean hasExplicitTimestamp = solve.getCreatedAt() != null;
+        String sql = hasExplicitTimestamp
+                ? "INSERT INTO solves (session_id, time_ms, penalty, scramble, created_at) VALUES (?, ?, ?, ?, ?)"
+                : "INSERT INTO solves (session_id, time_ms, penalty, scramble) VALUES (?, ?, ?, ?)";
         Connection conn = null;
         try {
             conn = DatabaseManager.getConnection();
@@ -27,6 +32,9 @@ public class SolveDB {
             stmt.setLong(2, solve.getTimeMs());
             stmt.setString(3, solve.getPenalty().name().toLowerCase());
             stmt.setString(4, solve.getScramble());
+            if (hasExplicitTimestamp) {
+                stmt.setObject(5, solve.getCreatedAt());
+            }
             stmt.executeUpdate();
             ResultSet keys = stmt.getGeneratedKeys();
             if (keys.next()) {

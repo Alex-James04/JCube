@@ -19,6 +19,8 @@
             </padding>
             <Button text="Back" onAction="#handleBack"/>
             <Label fx:id="headerLabel"/>
+            <Button text="Import" onAction="#handleImport"/>
+            <Button text="Export" onAction="#handleExport"/>
         </HBox>
     </top>
     <center>
