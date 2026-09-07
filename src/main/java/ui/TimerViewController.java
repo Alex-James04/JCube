@@ -1,17 +1,30 @@
 package ui;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import javafx.animation.AnimationTimer;
+import javafx.collections.FXCollections;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 
 import controller.AppController;
 import controller.StatsService;
@@ -51,6 +64,9 @@ public class TimerViewController {
     @FXML
     private Button dnfButton;
 
+    @FXML
+    private ListView<Solve> historyListView;
+
     private final SolveDB solveDB = new SolveDB();
     private final CubeDB cubeDB = new CubeDB();
     private final StatsService statsService = new StatsService();
@@ -86,7 +102,7 @@ public class TimerViewController {
         headerLabel.setText("Timer — " + session.getName());
         currentScramble = ScrambleGenerator.generateScramble();
         scrambleLabel.setText(currentScramble);
-        refreshStats();
+        refresh();
     }
 
     @FXML
@@ -97,6 +113,7 @@ public class TimerViewController {
 
         plus2Button.setDisable(true);
         dnfButton.setDisable(true);
+        historyListView.setCellFactory(list -> new HistoryCell());
 
         scrambleLabel.setVisible(settings.isShowScramble());
         scrambleLabel.setManaged(settings.isShowScramble());
@@ -128,12 +145,16 @@ public class TimerViewController {
 
     @FXML
     private void handlePlus2() {
-        togglePenalty(Penalty.PLUS2);
+        if (lastSolve != null) {
+            togglePenalty(lastSolve, Penalty.PLUS2);
+        }
     }
 
     @FXML
     private void handleDnf() {
-        togglePenalty(Penalty.DNF);
+        if (lastSolve != null) {
+            togglePenalty(lastSolve, Penalty.DNF);
+        }
     }
 
     // The OS repeats KEY_PRESSED continuously while a key is held; without this de-bounce, each
@@ -159,16 +180,34 @@ public class TimerViewController {
         timeController.onSpacebarReleased(System.currentTimeMillis());
     }
 
-    private void togglePenalty(Penalty penalty) {
-        if (lastSolve == null) {
-            return;
+    // Takes the target Solve explicitly (rather than always acting on lastSolve) so history rows
+    // can toggle penalties on any past solve, not just the one just completed.
+    private void togglePenalty(Solve solve, Penalty penalty) {
+        Penalty newPenalty = solve.getPenalty() == penalty ? Penalty.NONE : penalty;
+        solve.setPenalty(newPenalty);
+        solveDB.updatePenalty(solve.getId(), newPenalty);
+        if (lastSolve != null && solve.getId() == lastSolve.getId()) {
+            lastSolve = solve;
+            lastResultText = formatMs(solve.getEffectiveTimeMs());
+            timeLabel.setText(lastResultText);
         }
-        Penalty newPenalty = lastSolve.getPenalty() == penalty ? Penalty.NONE : penalty;
-        lastSolve.setPenalty(newPenalty);
-        solveDB.updatePenalty(lastSolve.getId(), newPenalty);
-        lastResultText = formatMs(lastSolve.getEffectiveTimeMs());
-        timeLabel.setText(lastResultText);
-        refreshStats();
+        refresh();
+    }
+
+    private void deleteSolve(Solve solve) {
+        Alert alert = new Alert(AlertType.CONFIRMATION, "Delete this solve?", ButtonType.YES, ButtonType.NO);
+        alert.setHeaderText(null);
+        alert.showAndWait().filter(ButtonType.YES::equals).ifPresent(response -> {
+            solveDB.delete(solve.getId());
+            if (lastSolve != null && solve.getId() == lastSolve.getId()) {
+                lastSolve = null;
+                lastResultText = "0.00";
+                timeLabel.setText(lastResultText);
+                plus2Button.setDisable(true);
+                dnfButton.setDisable(true);
+            }
+            refresh();
+        });
     }
 
     private void onSolveCompleted(long timeMs, Penalty penalty) {
@@ -180,7 +219,7 @@ public class TimerViewController {
 
         currentScramble = ScrambleGenerator.generateScramble();
         scrambleLabel.setText(currentScramble);
-        refreshStats();
+        refresh();
     }
 
     private void onStateChanged(TimeController.State newState) {
@@ -189,13 +228,26 @@ public class TimerViewController {
         dnfButton.setDisable(!stopped);
     }
 
-    private void refreshStats() {
+    private void refresh() {
         List<Solve> solves = solveDB.findBySessionId(session.getId());
+        refreshStatsRow(solves);
+        refreshHistoryList(solves);
+    }
+
+    private void refreshStatsRow(List<Solve> solves) {
         statsBox.getChildren().clear();
         for (StatSpec spec : settings.getStatSpecs()) {
             Optional<Long> value = statsService.compute(spec, solves);
             statsBox.getChildren().add(new Label(spec.label() + ": " + formatStat(value)));
         }
+    }
+
+    // solves is oldest-first (as SolveDB returns it); the history list shows newest-first, but
+    // each row's displayed solve number is still its true chronological position.
+    private void refreshHistoryList(List<Solve> solves) {
+        List<Solve> newestFirst = new ArrayList<>(solves);
+        Collections.reverse(newestFirst);
+        historyListView.setItems(FXCollections.observableArrayList(newestFirst));
     }
 
     private void updateTimeLabel() {
@@ -234,5 +286,39 @@ public class TimerViewController {
 
     private static String formatStat(Optional<Long> value) {
         return value.map(TimerViewController::formatMs).orElse("-");
+    }
+
+    private class HistoryCell extends ListCell<Solve> {
+        private final Label infoLabel = new Label();
+        private final Button rowPlus2Button = new Button("+2");
+        private final Button rowDnfButton = new Button("DNF");
+        private final Button rowDeleteButton = new Button("Delete");
+        private final HBox root;
+
+        HistoryCell() {
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            root = new HBox(8, infoLabel, spacer, rowPlus2Button, rowDnfButton, rowDeleteButton);
+            root.setAlignment(Pos.CENTER_LEFT);
+
+            rowPlus2Button.setOnAction(e -> togglePenalty(getItem(), Penalty.PLUS2));
+            rowPlus2Button.addEventFilter(MouseEvent.MOUSE_CLICKED, Event::consume);
+            rowDnfButton.setOnAction(e -> togglePenalty(getItem(), Penalty.DNF));
+            rowDnfButton.addEventFilter(MouseEvent.MOUSE_CLICKED, Event::consume);
+            rowDeleteButton.setOnAction(e -> deleteSolve(getItem()));
+            rowDeleteButton.addEventFilter(MouseEvent.MOUSE_CLICKED, Event::consume);
+        }
+
+        @Override
+        protected void updateItem(Solve solve, boolean empty) {
+            super.updateItem(solve, empty);
+            if (empty || solve == null) {
+                setGraphic(null);
+            } else {
+                int number = getListView().getItems().size() - getIndex();
+                infoLabel.setText("#" + number + "  " + formatMs(solve.getEffectiveTimeMs()));
+                setGraphic(root);
+            }
+        }
     }
 }
