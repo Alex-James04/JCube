@@ -50,6 +50,10 @@ public class TimeController {
                 holdStartMs = nowMs;
                 setState(State.INSPECTION);
             }
+            // Resets on every press during inspection, not just the first: WCA arming requires
+            // the hold immediately before release to reach the threshold, so a press-release-
+            // press sequence (fidgeting, a mis-timed early press) must restart the clock rather
+            // than let an earlier, already-released hold count toward this release.
             case INSPECTION -> holdStartMs = nowMs;
             case RUNNING -> stopRun(nowMs);
         }
@@ -83,6 +87,12 @@ public class TimeController {
         return state == State.RUNNING ? nowMs - runStartMs : 0;
     }
 
+    // This DNF check duplicates part of what tick() already watches for, rather than relying on
+    // tick() alone: tick() only runs on a timer (once per animation frame) and exists to catch the
+    // case where the user never releases the spacebar at all. If they DO release — even a whole
+    // frame after crossing the 17s limit — that release goes through onSpacebarReleased/startRun
+    // directly, with no guarantee tick() ran in between. Without this check here, a late-but-real
+    // release could slip through as a normal (or +2) start instead of the DNF it should be.
     private void startRun(long nowMs) {
         Penalty inspectionPenalty = inspectionPenaltyFor(nowMs - inspectionStartMs);
         if (inspectionPenalty == Penalty.DNF) {

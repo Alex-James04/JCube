@@ -76,6 +76,9 @@ public class SolveCsvService {
             return new Solve(-1, sessionId, rawMs, Penalty.DNF, scramble, createdAt);
         }
 
+        // A +2 is detected by the gap between the two columns, not a marker in either one: this
+        // format has no explicit "+2" flag, so P.1 being exactly 2 seconds more than the raw Time
+        // is the only signal a penalty was applied (already-equal columns mean no penalty).
         long finalMs = parseSecondsToMs(finalField);
         Penalty penalty = finalMs - rawMs == PLUS2_MS ? Penalty.PLUS2 : Penalty.NONE;
         return new Solve(-1, sessionId, rawMs, penalty, scramble, createdAt);

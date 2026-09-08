@@ -15,6 +15,10 @@ public class DatabaseManager {
     private static final String DB_PATH = resolveDatabasePath();
     private static boolean initialized = false;
 
+    // Resolves to each OS's conventional per-user app-data location (not just user.home directly)
+    // so the DB file lands where a native app is expected to put its data rather than as loose
+    // clutter in the home directory. Runs once, from this class's static initializer, so the
+    // directory exists before any connection ever tries to open a file inside it.
     private static String resolveDatabasePath() {
         String os = System.getProperty("os.name").toLowerCase();
         String home = System.getProperty("user.home");
