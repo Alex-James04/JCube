@@ -5,9 +5,6 @@ It was born out of a re-obsession with cubing and a desire to have a dedicated l
 app for tracking personal progress — something more personal and purpose-built than
 existing websites or mobile apps, and one that lives entirely on my own machine.
 
-> **This project is a work in progress.** Features are being added incrementally
-> and the application is not yet in a finished state.
-
 ---
 
 ## What it is
@@ -21,16 +18,45 @@ The goal is a clean, fast, distraction-free timer that I personally want to use.
 
 ---
 
-## Features (planned / in progress)
+## Features
 
-- Create and manage multiple named cube profiles
-- Session-based solve tracking per cube
-- Scramble generation
-- Session statistics (ao5, ao12, mean, PB)
-- Inspection timer
-- Dark and light theme
-- Settings per session
-- Full offline support — no account, no internet, no tracking
+**Cubes & sessions**
+- Create and manage any number of freely-named cube profiles (not locked to a predefined
+  puzzle list — see [Cube support](#cube-support))
+- Session-based solve tracking per cube, with rename/delete (right-click) on both cubes
+  and sessions
+- A Home screen and Sessions screen that show either a general/session-specific intro or
+  the selected cube's/session's stats (best single, ao5, ao12, mean, solve count),
+  depending on what's selected
+
+**Timer**
+- Configurable spacebar mechanics (WCA hold-to-arm vs. Simple) and inspection timing
+  (WCA 15s/17s penalties vs. Simple/untimed)
+- 3x3 scramble generation
+- Solve history with per-solve rolling stats — ao5/ao12/etc. shown *as of that solve*, not
+  just the current session-wide value — plus the current and best-ever value for each
+  configured stat
+- +2/DNF penalty editing (right-click a solve, or select it to edit from the main timer
+  pane) that keeps the recorded time visible with a `(+2)`/`(DNF)` marker, rather than
+  hiding what was actually recorded
+- CSV import/export in the semicolon-delimited `No.;Time;Comment;Scramble;Date;P.1` format
+  used by common third-party cube timers
+
+**Settings**
+- A fully custom, per-role color scheme (background, surface, primary/secondary text,
+  accent, button, button hover, danger, border) with one-click Dark/Light presets — not
+  just a theme toggle, every color is independently editable and hot-applies everywhere,
+  including dialogs
+- Customizable stats list on the timer screen (any `aoN` / Mean / PB, add or remove freely)
+- Decimal places shown in times (0–3, default 2)
+- Confirm-before-delete for cubes, sessions, and solves
+- Show/hide scramble during solves
+
+**Everything else**
+- Full offline support — no account, no internet, no tracking; all data lives in a local
+  SQLite database
+- A custom JCube icon in the title bar, taskbar, and (for the native Windows build) File
+  Explorer
 
 ---
 
@@ -38,7 +64,8 @@ The goal is a clean, fast, distraction-free timer that I personally want to use.
 
 JCube supports any cube or puzzle you want to track. Cube profiles are user-defined
 by name rather than locked to a predefined list, so whether you're timing a 3x3,
-a Pyraminx, a Clock, or anything else, you can create a profile for it.
+a Pyraminx, a Clock, or anything else, you can create a profile for it. Scramble
+generation itself is currently 3x3-only regardless of the cube profile's name.
 
 ---
 
@@ -65,8 +92,8 @@ A native Windows build (a `JCube.exe` with a bundled runtime — no separate Jav
 needed to run it, and the JCube icon shown in File Explorer / the taskbar) can be built
 with `scripts/package.sh`; see [Building from source](#building-from-source).
 
-Solve data is stored locally in an embedded SQLite database, meaning your times
-stay on your machine and the app works completely offline.
+Solve data is stored locally in an embedded SQLite database (`%APPDATA%\JCube` on
+Windows), meaning your times stay on your machine and the app works completely offline.
 
 ---
 
@@ -76,14 +103,16 @@ stay on your machine and the app works completely offline.
 - JavaFX 23 — desktop UI
 - SQLite via sqlite-jdbc — local embedded database
 - Maven — build and dependency management
+- jpackage — native Windows app-image packaging
 
 ---
 
 ## Project status
 
-JCube is actively being developed as a personal project. The architecture and
-core data layer are being built out first, with the UI to follow. Expect
-frequent changes to the structure and features as the project evolves.
+JCube's core feature set — cube/session management, the timer, solve history and
+stats, settings, and packaging — is complete and in daily personal use. Development
+continues incrementally on top of that (new settings, refinements, and whatever else
+comes up from actually using it), rather than working toward an initial 1.0.
 
 ---
 
@@ -108,4 +137,4 @@ Toolset installed separately, which the script doesn't do on its own.
 
 ---
 
-*Built primarily for personal.*
+*Built primarily for personal use.*
