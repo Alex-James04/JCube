@@ -6,39 +6,62 @@ rather than leaving it to rot.
 
 ## Status snapshot
 
-Steps 1–7 (data layer, app shell, cube/session management, StatsService, Timer with solve
-history, Settings, and the full visual/UX redesign) are functionally and visually complete.
-What follows is what's left.
+Steps 1–9 (data layer, app shell, cube/session management, StatsService, Timer with solve
+history, Settings, the full visual/UX redesign, the comment/cleanup pass, and final packaging)
+are all complete. There is no active "remaining build steps" list right now — what follows is
+context for future work, not a backlog.
 
-## Remaining build steps
+## Step 8 — Comments & cleanup (completed)
 
-### Step 8 — Comments & cleanup
-An audit pass over the non-obvious logic specifically, not a fresh feature. Candidates:
-- `ScrambleGenerator`'s move-cancellation/opposite-face-sorting logic
-- `DatabaseManager`'s path resolution and the `ADD COLUMN` duplicate-column migration workaround
-- `TimeController`'s state transitions (why DNF short-circuits `startRun` instead of only relying
-  on `tick()`, why hold-start resets on every press during `INSPECTION`)
-- `SolveCsvService`'s DNF/+2 detection rules (Time vs. P.1 columns)
+Non-obvious logic that got an explanatory comment pass:
+- `ScrambleGenerator`'s move-cancellation/opposite-face-sorting algorithm — why moves are kept as
+  repeated characters internally, what `sortOppositePairs`/`cancelFours` are each doing and why
+  `validateScramble` runs both after every appended move rather than once at the end
+- `DatabaseManager`'s per-OS data-directory resolution
+- `TimeController`'s DNF short-circuit in `startRun` (why it can't just rely on `tick()`) and why
+  `holdStartMs` resets on every press during `INSPECTION`, not just the first
+- `SolveCsvService`'s +2 detection (the Time/P.1 gap is the only signal, since the format has no
+  explicit penalty marker)
 - The click-away/reselect-by-id pattern shared by `CubeViewController`, `SessionViewController`,
-  and `TimerViewController` (via `ViewUtils.isDescendant`) — why row re-selection has to be
-  excluded from the generic click filter, and why action buttons clear selection explicitly
-  rather than relying on filter timing
-- `MainWindow.buildCss`'s named-`{{placeholder}}` template approach — worth a one-line note on why
-  it replaced positional `String.formatted(%s...)` (a mismatched arg count crashed the app on
-  launch once already)
+  and `TimerViewController` (via `ViewUtils.isDescendant`), and `MainWindow.buildCss`'s
+  named-`{{placeholder}}` templating — both already carried their explanatory comments from when
+  they were built during the visual/UX redesign, so no further work was needed there.
 
-### Step 9 — Final packaging
-Not started. `mvn package` produces a fat JAR but it hasn't been smoke-tested on a clean directory
-with no dev environment present. Needs:
-- Confirm the `%APPDATA%\JCube` DB path resolves correctly with no JAVA_HOME/Maven on PATH
-- Confirm double-clicking the JAR launches it (no console needed for `Enable-Native-Access`, since
-  that's a manifest attribute, not a launch flag)
-- `scripts/package.sh` exists but is an empty stub — decide whether to fill it in as a one-command
-  build+smoke-test script, or drop it if `mvn package` alone is sufficient
-- Optional: note in the README that running the JAR from a terminal (not double-click) may still
-  print the `sun.misc.Unsafe` deprecation warning from JavaFX's Marlin rasterizer, since that flag
-  has no manifest-attribute equivalent (see the dev-run warning fixes in the commit history for
-  the full explanation)
+## Step 9 — Final packaging (completed)
+
+- `scripts/package.sh` is filled in: builds the fat JAR (`mvn clean package`), smoke-tests it by
+  actually launching it and confirming it stays running for a few seconds (not just trusting a
+  green Maven build), then — on Windows, using `$JAVA_HOME/bin/jpackage` explicitly rather than
+  whatever `jpackage` happens to resolve to on `PATH` (an unrelated older JDK's jpackage would
+  bundle a runtime too old to run these class files) — builds a native app-image at
+  `target/dist/JCube/JCube.exe` with the JCube icon embedded, using a generated `packaging/icon.ico`.
+- The app-image bundles its own Java runtime, so `JCube.exe` runs standalone with no system-wide
+  Java install required, and its DB path resolution (`%APPDATA%\JCube`) was confirmed working from
+  that standalone launch.
+- Deliberately produces an app-image, not an `.exe`/`.msi` installer: jpackage's installer types
+  need the WiX Toolset installed separately, which the script doesn't install on its own (that's a
+  real system-level install, not something to do silently). Revisit if a proper installer is
+  wanted — just install WiX and change `--type app-image` to `--type exe` (or `msi`) in
+  `scripts/package.sh`.
+- Confirmed the packaged app needs an explicit `--java-options --enable-native-access=ALL-UNNAMED`
+  passed to jpackage — the fat JAR's own manifest attribute handles this fine for a plain
+  `java -jar` launch, but jpackage's generated launcher doesn't honor that manifest attribute the
+  same way, so without the flag `JCube.exe` logs a native-access warning on every launch.
+- README documents both the plain `mvn package` fat-JAR path and the `scripts/package.sh` native
+  build, plus a note that running the JAR from a terminal (not double-click) may print the
+  `sun.misc.Unsafe` deprecation warning from JavaFX's Marlin rasterizer — harmless, no
+  manifest-attribute equivalent exists to silence it, and it's invisible on a double-click launch
+  anyway since there's no console attached.
+
+## Icon / branding
+
+The JCube logo (`src/main/resources/images/JCubeLogo.png`, currently 16×16 — fine for a title bar,
+but will look soft if used somewhere larger like the Alt-Tab switcher; a higher-res source would
+help there) is wired in two places:
+- `MainWindow.applyIcon(Stage)` sets it as the title bar/taskbar icon for the main window and both
+  modal dialogs (`NameDialogController`, `AddStatDialogController`).
+- `packaging/icon.ico` (generated from the same PNG) is what jpackage embeds into `JCube.exe`, so
+  it's also what shows in File Explorer / when pinned to the taskbar or Start menu.
 
 ## Settings inventory — implemented vs candidate
 
@@ -75,8 +98,7 @@ grows large enough that this per-setting boilerplate becomes the actual bottlene
 
 ## Visual/UX redesign — completed
 
-Originally tracked here as "planned, not started"; it's since shipped in full and gone well beyond
-the original CSS/FXML-only scope:
+Shipped in full, well beyond the original CSS/FXML-only scope it was first scoped as:
 - Cubes ("Home"), Sessions, and Timer screens rebuilt around a consistent left-list/right-detail
   (or right-timer) layout, with a fixed-height header bar across all three so the panel doesn't
   shift between screens
@@ -95,6 +117,7 @@ the original CSS/FXML-only scope:
 - Full custom color scheme system (see Settings inventory above) replacing the old static
   dark.css/light.css swap
 - Footer watermark ("Alex James © 2026"), centered, on every page
+- Window/taskbar icon (see Icon / branding above)
 
 ## Known simplifications / minor adjustments worth revisiting
 
@@ -112,6 +135,10 @@ Not blockers, just things flagged along the way that a future pass might want to
 - **CSV import assumes the exact 6-column format given.** No column-header-based flexible parsing;
   if a different tool's export has columns in a different order, it won't parse. Fine for now
   since only one format was specified, but worth knowing if a second import source ever comes up.
+- **No installer, just an app-image.** See Step 9 above — a proper `.exe`/`.msi` installer needs
+  the WiX Toolset installed on the build machine, which hasn't been done.
+- **Logo source is only 16×16.** Fine for the title bar; a higher-res version would help anywhere
+  the icon gets scaled up.
 
 ## Difficulty guide for future changes
 
@@ -120,5 +147,6 @@ low-risk and mostly CSS-template/FXML-only. Adding a genuinely new setting or mi
 tweak is also low-to-medium effort and follows the established patterns throughout the codebase
 (see the Extensibility note above). Anything that changes what data is stored (schema) or how core
 interactions work (the timer state machine, navigation history stack, click-away/selection logic)
-is the higher-effort/higher-risk category — the navigation stack and click-away filters in
-particular are subtle enough that Step 8's comment pass should prioritize them.
+is the higher-effort/higher-risk category. Packaging changes (moving to a real installer, signing,
+auto-update) are their own category — self-contained, but each needs its own tooling (WiX,
+codesigning certs, an update-check mechanism) not currently present in this repo.
