@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-JAR_NAME="jcube-1.0-SNAPSHOT.jar"
+JAR_NAME="jcube.jar"
 JAR_PATH="target/$JAR_NAME"
 
 echo "==> Building fat JAR (mvn clean package)..."

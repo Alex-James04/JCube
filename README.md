@@ -123,7 +123,7 @@ Requirements: Java 25+, Maven 3.9+
 git clone https://github.com/Alex-James04/JCube.git
 cd JCube
 mvn package
-java -jar target/jcube-1.0-SNAPSHOT.jar
+java -jar target/jcube.jar
 ```
 
 To also build the native Windows app (`target/dist/JCube/JCube.exe`), which bundles its

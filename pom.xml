@@ -69,6 +69,10 @@
        BUILD PLUGINS
        ==================================================== -->
   <build>
+    <!-- Names the packaged artifact jcube.jar (and, from the shade plugin, original-jcube.jar as
+         its pre-shading backup) instead of the version-suffixed jcube-1.0-SNAPSHOT.jar default —
+         "1.0-SNAPSHOT" is a Maven build convention, not a name meant for a public download. -->
+    <finalName>jcube</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
