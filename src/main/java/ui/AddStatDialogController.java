@@ -92,6 +92,7 @@ public class AddStatDialogController {
             Scene scene = new Scene(root);
             MainWindow.applyColorScheme(scene, new ColorSchemeDB().get());
             stage.setScene(scene);
+            MainWindow.applyIcon(stage);
 
             stage.showAndWait();
             return Optional.ofNullable(controller.result);

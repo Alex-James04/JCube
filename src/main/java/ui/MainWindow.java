@@ -10,6 +10,7 @@ import java.util.Map;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import db.ColorSchemeDB;
@@ -22,6 +23,11 @@ public class MainWindow {
     private static final double MIN_WIDTH = 700;
     private static final double MIN_HEIGHT = 500;
 
+    // Loaded once and reused for every window (main + dialogs) rather than re-reading the file
+    // per Stage.
+    private static final Image APP_ICON = new Image(
+            MainWindow.class.getResourceAsStream("/images/JCubeLogo.png"));
+
     public static void show(Stage stage) throws IOException {
         URL fxmlUrl = MainWindow.class.getResource("/fxml/MainWindow.fxml");
         Parent root = new FXMLLoader(fxmlUrl).load();
@@ -33,7 +39,14 @@ public class MainWindow {
         stage.setMinWidth(MIN_WIDTH);
         stage.setMinHeight(MIN_HEIGHT);
         stage.setScene(scene);
+        applyIcon(stage);
         stage.show();
+    }
+
+    // Used for the main window and every modal dialog (NameDialogController,
+    // AddStatDialogController) so the title bar icon is consistent everywhere, not just on launch.
+    public static void applyIcon(Stage stage) {
+        stage.getIcons().add(APP_ICON);
     }
 
     private static void applyTheme(Scene scene) {
