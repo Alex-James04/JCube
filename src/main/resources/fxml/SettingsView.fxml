@@ -4,37 +4,78 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
 
 <BorderPane fx:id="rootPane"
             xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="ui.SettingsViewController">
     <center>
-        <VBox spacing="12">
-            <padding>
-                <Insets top="16" right="16" bottom="16" left="16"/>
-            </padding>
+        <ScrollPane fitToWidth="true">
+            <VBox spacing="12">
+                <padding>
+                    <Insets top="16" right="16" bottom="16" left="16"/>
+                </padding>
 
-            <Label text="Theme"/>
-            <ChoiceBox fx:id="themeChoice"/>
+                <CheckBox fx:id="showScrambleCheck" text="Show scramble during solves"/>
 
-            <CheckBox fx:id="showScrambleCheck" text="Show scramble during solves"/>
+                <CheckBox fx:id="confirmDeletesCheck" text="Confirm before deleting cubes, sessions, or solves"/>
 
-            <CheckBox fx:id="confirmDeletesCheck" text="Confirm before deleting cubes, sessions, or solves"/>
+                <Label text="Spacebar mechanics"/>
+                <ChoiceBox fx:id="spacebarModeChoice"/>
 
-            <Label text="Spacebar mechanics"/>
-            <ChoiceBox fx:id="spacebarModeChoice"/>
+                <Label text="Inspection timing"/>
+                <ChoiceBox fx:id="inspectionModeChoice"/>
 
-            <Label text="Inspection timing"/>
-            <ChoiceBox fx:id="inspectionModeChoice"/>
+                <Label text="Decimal places shown in times"/>
+                <Spinner fx:id="decimalPlacesSpinner" editable="true" prefWidth="80"/>
 
-            <Label text="Stats shown on the timer screen"/>
-            <ListView fx:id="statsListView" prefHeight="160"/>
-            <Button text="Add Stat" onAction="#handleAddStat"/>
-        </VBox>
+                <Label text="Stats shown on the timer screen"/>
+                <ListView fx:id="statsListView" prefHeight="160"/>
+                <Button text="Add Stat" onAction="#handleAddStat"/>
+
+                <Label text="Color Scheme" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <HBox spacing="8">
+                    <Button text="Use Dark Preset" onAction="#handleDarkPreset"/>
+                    <Button text="Use Light Preset" onAction="#handleLightPreset"/>
+                </HBox>
+                <GridPane hgap="12" vgap="8">
+                    <Label text="Background" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="backgroundPicker" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="Surface" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="surfacePicker" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Primary Text" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="textPrimaryPicker" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Secondary Text" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="textSecondaryPicker" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <Label text="Accent" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="accentPicker" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                    <Label text="Button" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="buttonPicker" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                    <Label text="Button Hover" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="buttonHoverPicker" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+                    <Label text="Danger" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="dangerPicker" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+                    <Label text="Border" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+                    <ColorPicker fx:id="borderPicker" GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+                </GridPane>
+            </VBox>
+        </ScrollPane>
     </center>
 </BorderPane>

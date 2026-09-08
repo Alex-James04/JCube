@@ -10,16 +10,22 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
 
+import db.ColorSchemeDB;
 import db.SettingsDB;
+import model.ColorScheme;
 import model.InspectionMode;
 import model.Settings;
 import model.SpacebarMode;
@@ -29,9 +35,6 @@ public class SettingsViewController {
 
     @FXML
     private BorderPane rootPane;
-
-    @FXML
-    private ChoiceBox<String> themeChoice;
 
     @FXML
     private CheckBox showScrambleCheck;
@@ -48,20 +51,49 @@ public class SettingsViewController {
     @FXML
     private ListView<StatSpec> statsListView;
 
+    @FXML
+    private Spinner<Integer> decimalPlacesSpinner;
+
+    @FXML
+    private ColorPicker backgroundPicker;
+
+    @FXML
+    private ColorPicker surfacePicker;
+
+    @FXML
+    private ColorPicker textPrimaryPicker;
+
+    @FXML
+    private ColorPicker textSecondaryPicker;
+
+    @FXML
+    private ColorPicker accentPicker;
+
+    @FXML
+    private ColorPicker buttonPicker;
+
+    @FXML
+    private ColorPicker buttonHoverPicker;
+
+    @FXML
+    private ColorPicker dangerPicker;
+
+    @FXML
+    private ColorPicker borderPicker;
+
     private final SettingsDB settingsDB = new SettingsDB();
+    private final ColorSchemeDB colorSchemeDB = new ColorSchemeDB();
     private Settings settings;
+    private ColorScheme colorScheme;
+
+    // Guards against the picker-population loop (used by presets and initial load) re-triggering
+    // the per-picker listeners and causing redundant persist+apply churn while setting all 9 at once.
+    private boolean suppressColorListeners;
 
     @FXML
     private void initialize() {
         settings = settingsDB.get();
-
-        themeChoice.setItems(FXCollections.observableArrayList("dark", "light"));
-        themeChoice.setValue(settings.getTheme());
-        themeChoice.valueProperty().addListener((obs, oldValue, newValue) -> {
-            settings.setTheme(newValue);
-            settingsDB.update(settings);
-            MainWindow.applyTheme(rootPane.getScene(), newValue);
-        });
+        colorScheme = colorSchemeDB.get();
 
         showScrambleCheck.setSelected(settings.isShowScramble());
         showScrambleCheck.selectedProperty().addListener((obs, oldValue, newValue) -> {
@@ -89,8 +121,77 @@ public class SettingsViewController {
             settingsDB.update(settings);
         });
 
+        decimalPlacesSpinner.setValueFactory(
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 3, settings.getDecimalPlaces()));
+        decimalPlacesSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+            settings.setDecimalPlaces(newValue);
+            settingsDB.update(settings);
+        });
+
         statsListView.setCellFactory(list -> new StatCell());
         refreshStatsList();
+
+        wireColorPicker(backgroundPicker, colorScheme.getBackground(), ColorScheme::setBackground);
+        wireColorPicker(surfacePicker, colorScheme.getSurface(), ColorScheme::setSurface);
+        wireColorPicker(textPrimaryPicker, colorScheme.getTextPrimary(), ColorScheme::setTextPrimary);
+        wireColorPicker(textSecondaryPicker, colorScheme.getTextSecondary(), ColorScheme::setTextSecondary);
+        wireColorPicker(accentPicker, colorScheme.getAccent(), ColorScheme::setAccent);
+        wireColorPicker(buttonPicker, colorScheme.getButton(), ColorScheme::setButton);
+        wireColorPicker(buttonHoverPicker, colorScheme.getButtonHover(), ColorScheme::setButtonHover);
+        wireColorPicker(dangerPicker, colorScheme.getDanger(), ColorScheme::setDanger);
+        wireColorPicker(borderPicker, colorScheme.getBorder(), ColorScheme::setBorder);
+    }
+
+    private interface ColorSetter {
+        void set(ColorScheme scheme, String hex);
+    }
+
+    private void wireColorPicker(ColorPicker picker, String initialHex, ColorSetter setter) {
+        picker.setValue(Color.web(initialHex));
+        picker.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (suppressColorListeners) {
+                return;
+            }
+            setter.set(colorScheme, toHex(newValue));
+            colorSchemeDB.update(colorScheme);
+            MainWindow.applyColorScheme(rootPane.getScene(), colorScheme);
+        });
+    }
+
+    private static String toHex(Color color) {
+        int r = (int) Math.round(color.getRed() * 255);
+        int g = (int) Math.round(color.getGreen() * 255);
+        int b = (int) Math.round(color.getBlue() * 255);
+        return String.format("#%02x%02x%02x", r, g, b);
+    }
+
+    @FXML
+    private void handleDarkPreset() {
+        applyPreset(ColorScheme.darkPreset());
+    }
+
+    @FXML
+    private void handleLightPreset() {
+        applyPreset(ColorScheme.lightPreset());
+    }
+
+    private void applyPreset(ColorScheme preset) {
+        colorScheme = preset;
+        colorSchemeDB.update(colorScheme);
+
+        suppressColorListeners = true;
+        backgroundPicker.setValue(Color.web(colorScheme.getBackground()));
+        surfacePicker.setValue(Color.web(colorScheme.getSurface()));
+        textPrimaryPicker.setValue(Color.web(colorScheme.getTextPrimary()));
+        textSecondaryPicker.setValue(Color.web(colorScheme.getTextSecondary()));
+        accentPicker.setValue(Color.web(colorScheme.getAccent()));
+        buttonPicker.setValue(Color.web(colorScheme.getButton()));
+        buttonHoverPicker.setValue(Color.web(colorScheme.getButtonHover()));
+        dangerPicker.setValue(Color.web(colorScheme.getDanger()));
+        borderPicker.setValue(Color.web(colorScheme.getBorder()));
+        suppressColorListeners = false;
+
+        MainWindow.applyColorScheme(rootPane.getScene(), colorScheme);
     }
 
     @FXML

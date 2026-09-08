@@ -13,7 +13,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import db.SettingsDB;
+import db.ColorSchemeDB;
 
 public class NameDialogController {
 
@@ -56,7 +56,7 @@ public class NameDialogController {
             stage.initModality(Modality.APPLICATION_MODAL);
 
             Scene scene = new Scene(root);
-            MainWindow.applyTheme(scene, new SettingsDB().get().getTheme());
+            MainWindow.applyColorScheme(scene, new ColorSchemeDB().get());
             stage.setScene(scene);
 
             stage.showAndWait();

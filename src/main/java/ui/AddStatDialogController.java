@@ -14,7 +14,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import db.SettingsDB;
+import db.ColorSchemeDB;
 import model.StatSpec;
 
 public class AddStatDialogController {
@@ -90,7 +90,7 @@ public class AddStatDialogController {
             stage.initModality(Modality.APPLICATION_MODAL);
 
             Scene scene = new Scene(root);
-            MainWindow.applyTheme(scene, new SettingsDB().get().getTheme());
+            MainWindow.applyColorScheme(scene, new ColorSchemeDB().get());
             stage.setScene(scene);
 
             stage.showAndWait();
