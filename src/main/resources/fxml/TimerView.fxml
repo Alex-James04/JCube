@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -13,30 +14,38 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="ui.TimerViewController">
     <top>
-        <HBox spacing="8" alignment="CENTER_LEFT">
+        <HBox spacing="8" alignment="CENTER_LEFT" minHeight="60" prefHeight="60" maxHeight="60">
             <padding>
-                <Insets top="12" right="12" bottom="12" left="12"/>
+                <Insets top="0" right="12" bottom="0" left="12"/>
             </padding>
-            <Button text="Back" onAction="#handleBack"/>
-            <Label fx:id="headerLabel"/>
-            <Button text="Import" onAction="#handleImport"/>
-            <Button text="Export" onAction="#handleExport"/>
+            <Label fx:id="headerLabel" style="-fx-font-size: 14px;" styleClass="label-secondary"/>
         </HBox>
     </top>
     <center>
-        <VBox spacing="16" alignment="CENTER">
-            <padding>
-                <Insets top="12" right="12" bottom="12" left="12"/>
-            </padding>
-            <Label fx:id="scrambleLabel" wrapText="true"/>
-            <Label fx:id="timeLabel" style="-fx-font-size: 48px;"/>
-            <HBox fx:id="statsBox" spacing="16" alignment="CENTER"/>
-            <HBox spacing="8" alignment="CENTER">
-                <Button fx:id="plus2Button" text="+2" onAction="#handlePlus2"/>
-                <Button fx:id="dnfButton" text="DNF" onAction="#handleDnf"/>
-            </HBox>
-            <Label text="Solve History"/>
-            <ListView fx:id="historyListView" VBox.vgrow="ALWAYS"/>
-        </VBox>
+        <SplitPane dividerPositions="0.4">
+            <VBox spacing="8">
+                <padding>
+                    <Insets top="12" right="8" bottom="12" left="12"/>
+                </padding>
+                <Button text="Import" maxWidth="Infinity" onAction="#handleImport"/>
+                <Button text="Export" maxWidth="Infinity" onAction="#handleExport"/>
+                <Label text="Solve History"/>
+                <ListView fx:id="historyListView" VBox.vgrow="ALWAYS"/>
+            </VBox>
+            <VBox fx:id="timerPane" spacing="20" alignment="CENTER">
+                <padding>
+                    <Insets top="12" right="12" bottom="12" left="12"/>
+                </padding>
+                <Label fx:id="viewingLabel" style="-fx-font-size: 14px;" styleClass="label-secondary" visible="false" managed="false"/>
+                <Label fx:id="scrambleLabel" wrapText="true" style="-fx-font-size: 18px;"/>
+                <Label fx:id="timeLabel" style="-fx-font-size: 96px; -fx-font-weight: bold;"/>
+                <HBox fx:id="statsBox" spacing="24" alignment="CENTER"/>
+                <HBox spacing="12" alignment="CENTER">
+                    <Button fx:id="plus2Button" text="+2" onAction="#handlePlus2"/>
+                    <Button fx:id="dnfButton" text="DNF" onAction="#handleDnf"/>
+                    <Button fx:id="deleteButton" text="Delete" styleClass="danger-button" onAction="#handleDeleteSelected" visible="false" managed="false"/>
+                </HBox>
+            </VBox>
+        </SplitPane>
     </center>
 </BorderPane>
