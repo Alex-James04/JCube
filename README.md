@@ -53,6 +53,16 @@ java -jar jcube.jar
 ```
 or double click the jcube.jar file.
 
+> Running the JAR from a terminal may print a `WARNING: sun.misc.Unsafe::allocateMemory
+> has been called...` message. That's JavaFX's own Marlin rasterizer, not JCube's code,
+> and it's harmless — there's no manifest-attribute equivalent to silence it the way the
+> native-access warning is silenced, and it's invisible anyway when the JAR is launched
+> by double-clicking rather than from a console.
+
+A native Windows build (a `JCube.exe` with a bundled runtime — no separate Java install
+needed to run it, and the JCube icon shown in File Explorer / the taskbar) can be built
+with `scripts/package.sh`; see [Building from source](#building-from-source).
+
 Solve data is stored locally in an embedded SQLite database, meaning your times
 stay on your machine and the app works completely offline.
 
@@ -84,6 +94,15 @@ cd jcube
 mvn package
 java -jar target/jcube-1.0-SNAPSHOT.jar
 ```
+
+To also build the native Windows app (`target/dist/JCube/JCube.exe`), which bundles its
+own Java runtime so it runs without a system-wide Java install and carries the JCube
+icon, run `scripts/package.sh` instead of `mvn package` directly. It builds the fat JAR,
+smoke-tests that it actually launches, and then packages the native app via `jpackage`
+(requires JDK 25 — set `JAVA_HOME` to it if it isn't the JDK earlier on `PATH`, since
+jpackage must come from the same JDK the app was compiled with). This currently produces
+an app-image (a runnable folder), not a `.msi`/`.exe` installer — that needs the WiX
+Toolset installed separately, which the script doesn't do on its own.
 
 ---
 
