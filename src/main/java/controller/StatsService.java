@@ -80,4 +80,27 @@ public class StatsService {
         }
         return found ? Optional.of(best) : Optional.empty();
     }
+
+    // Value of `spec` as it would have read after each solve, in the same oldest-first order as `solves`.
+    // E.g. for AVERAGE(5), index i holds compute(spec, solves.subList(0, i+1)) — empty until enough solves exist.
+    public List<Optional<Long>> rollingSeries(StatSpec spec, List<Solve> solves) {
+        List<Optional<Long>> series = new ArrayList<>();
+        for (int i = 1; i <= solves.size(); i++) {
+            series.add(compute(spec, solves.subList(0, i)));
+        }
+        return series;
+    }
+
+    // Best (lowest) value `spec` has ever reached across the session, DNF-aware via compute()'s own DNF handling.
+    public Optional<Long> bestOf(StatSpec spec, List<Solve> solves) {
+        long best = Long.MAX_VALUE;
+        boolean found = false;
+        for (Optional<Long> value : rollingSeries(spec, solves)) {
+            if (value.isPresent() && value.get() < best) {
+                best = value.get();
+                found = true;
+            }
+        }
+        return found ? Optional.of(best) : Optional.empty();
+    }
 }
