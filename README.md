@@ -45,7 +45,9 @@ a Pyraminx, a Clock, or anything else, you can create a profile for it.
 ## How it works
 
 JCube runs as a fat JAR — a single self-contained executable file that bundles all
-dependencies. No installation required beyond having Java on your machine.
+dependencies. No installation required beyond having **Java 25 or newer** on your
+machine — the JAR won't run on an older Java (you'll see an `UnsupportedClassVersionError`
+if you try).
 
 Run
 ```bash
@@ -87,10 +89,10 @@ frequent changes to the structure and features as the project evolves.
 
 ## Building from source
 
-Requirements: Java 17+, Maven 3.9+
+Requirements: Java 25+, Maven 3.9+
 ```bash
-git clone https://github.com/yourname/jcube.git
-cd jcube
+git clone https://github.com/Alex-James04/JCube.git
+cd JCube
 mvn package
 java -jar target/jcube-1.0-SNAPSHOT.jar
 ```
