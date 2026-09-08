@@ -6,16 +6,11 @@ rather than leaving it to rot.
 
 ## Status snapshot
 
-Steps 1–6 (data layer, app shell, cube/session management, StatsService, Timer with
-solve history, Settings) are functionally complete. What follows is what's left.
+Steps 1–7 (data layer, app shell, cube/session management, StatsService, Timer with solve
+history, Settings, and the full visual/UX redesign) are functionally and visually complete.
+What follows is what's left.
 
 ## Remaining build steps
-
-### Step 7 — Settings, closing gaps
-Functionally done: theme (hot-applies), show/hide scramble, spacebar mechanics (WCA/Simple),
-inspection timing (WCA/Simple), confirm-before-delete, customizable stat list, CSV import/export.
-No FXML visual polish was applied — plain controls in a VBox — since a full UI redesign is planned
-separately (see "Visual styling" below).
 
 ### Step 8 — Comments & cleanup
 An audit pass over the non-obvious logic specifically, not a fresh feature. Candidates:
@@ -24,6 +19,13 @@ An audit pass over the non-obvious logic specifically, not a fresh feature. Cand
 - `TimeController`'s state transitions (why DNF short-circuits `startRun` instead of only relying
   on `tick()`, why hold-start resets on every press during `INSPECTION`)
 - `SolveCsvService`'s DNF/+2 detection rules (Time vs. P.1 columns)
+- The click-away/reselect-by-id pattern shared by `CubeViewController`, `SessionViewController`,
+  and `TimerViewController` (via `ViewUtils.isDescendant`) — why row re-selection has to be
+  excluded from the generic click filter, and why action buttons clear selection explicitly
+  rather than relying on filter timing
+- `MainWindow.buildCss`'s named-`{{placeholder}}` template approach — worth a one-line note on why
+  it replaced positional `String.formatted(%s...)` (a mismatched arg count crashed the app on
+  launch once already)
 
 ### Step 9 — Final packaging
 Not started. `mvn package` produces a fat JAR but it hasn't been smoke-tested on a clean directory
@@ -38,26 +40,18 @@ with no dev environment present. Needs:
   has no manifest-attribute equivalent (see the dev-run warning fixes in the commit history for
   the full explanation)
 
-## Visual styling (UI) — planned rework, not started
-
-Explicitly flagged by the project owner as something they intend to redesign. Current state:
-- `dark.css` / `light.css` are minimal (background, text, button colors only)
-- All FXML files use plain, unstyled `HBox`/`VBox`/`ListView` layouts with no custom CSS classes
-- No custom fonts, icons, spacing system, or component styling beyond JavaFX's default Modena-derived look
-
-When this work happens, see "Difficulty of visual-only changes" below — it's expected to be a
-CSS/FXML-only effort with no controller logic changes required, *provided* the restyling doesn't
-change what data is shown or how navigation works.
-
-## Settings inventory — implemented vs. candidate
+## Settings inventory — implemented vs candidate
 
 **Implemented:**
-- Theme (dark/light, hot-applies)
+- Full per-role custom color scheme (9 roles: background, surface, primary/secondary text, accent,
+  button, button hover, danger, border), with one-click Dark/Light presets, hot-applied everywhere
+  including dialogs
 - Show scramble during solves
 - Confirm before deleting cubes/sessions/solves
 - Spacebar mechanics (WCA hold-to-arm vs. Simple)
 - Inspection timing (WCA 15s/17s penalties vs. Simple/untimed)
 - Customizable stats list on the timer screen (any `aoN` / Mean / PB, add/remove freely)
+- Decimal places shown in times (0–3, default 2), applied everywhere a time is rendered
 
 **Candidate settings raised but explicitly declined (do not build unless asked again):**
 - Per-cube scramble type/algorithm (declined — scrambling stays 3x3-only for now)
@@ -71,7 +65,6 @@ change what data is shown or how navigation works.
 - Keyboard shortcut remapping beyond spacebar (e.g., a dedicated key for +2/DNF instead of only
   clicking buttons)
 - Default sort order or filtering for the solve history list
-- Number of decimal places shown in times
 
 Extensibility note: adding a new setting is currently cheap and consistent — one field on
 `Settings.java`, one `ALTER TABLE settings ADD COLUMN ...` line in `schema.sql` (already tolerant
@@ -80,13 +73,33 @@ line in `SettingsDB`, one control in `SettingsView.fxml`. No generic key-value s
 built — deliberate, to avoid indirection nobody asked for. Revisit only if the number of settings
 grows large enough that this per-setting boilerplate becomes the actual bottleneck.
 
+## Visual/UX redesign — completed
+
+Originally tracked here as "planned, not started"; it's since shipped in full and gone well beyond
+the original CSS/FXML-only scope:
+- Cubes ("Home"), Sessions, and Timer screens rebuilt around a consistent left-list/right-detail
+  (or right-timer) layout, with a fixed-height header bar across all three so the panel doesn't
+  shift between screens
+- Timer is the visually dominant element on its screen; solve history moved to the left panel with
+  per-solve rolling stats (ao5/ao12/etc. *as of that solve*) shown inline, number de-emphasized and
+  time bolded for scannability
+- Single-click a cube/session/solve to see its details fill the main pane (general app info /
+  session-specific guidance shown by default); double-click (cube/session) to drill in; click
+  anywhere else, or another list item, or any page button, returns to the default view
+- +2/DNF now keep the recorded time visible with a `(+2)`/`(DNF)` marker instead of DNF blanking
+  the time entirely
+- Global top nav bar (persistent back arrow + Home + Settings tabs) backed by a real navigation
+  history stack in `AppController`, replacing per-screen Back buttons
+- Right-click context menus (Rename/Delete, +2/DNF/Delete) replacing inline per-row buttons
+  everywhere
+- Full custom color scheme system (see Settings inventory above) replacing the old static
+  dark.css/light.css swap
+- Footer watermark ("Alex James © 2026"), centered, on every page
+
 ## Known simplifications / minor adjustments worth revisiting
 
 Not blockers, just things flagged along the way that a future pass might want to fix:
 
-- **Settings are read once per view load, not live.** Changing spacebar/inspection mode or the
-  stat list while a Timer view is already open won't affect that open session until you navigate
-  away and back. Same for theme changes made from a dialog that's already open.
 - **No comment field on solves.** The CSV import format has a Comment column; JCube's schema has
   no equivalent, so comments are silently dropped on import and always written empty on export.
 - **Solve history has no pagination/virtualization concerns tested at scale.** JavaFX `ListView`
@@ -102,8 +115,10 @@ Not blockers, just things flagged along the way that a future pass might want to
 
 ## Difficulty guide for future changes
 
-See the answer given directly to the user in the conversation this file was created from — the
-short version: pure visual restyling is FXML/CSS-only and low-risk; adding a genuinely new setting
-or minor behavioral tweak is also low-to-medium effort and follows established patterns throughout
-the codebase; anything that changes what data is stored (schema) or how core interactions work
-(the timer state machine, navigation flow) is the higher-effort/higher-risk category.
+Pure visual restyling (spacing, colors already exposed via the color scheme system, fonts) is
+low-risk and mostly CSS-template/FXML-only. Adding a genuinely new setting or minor behavioral
+tweak is also low-to-medium effort and follows the established patterns throughout the codebase
+(see the Extensibility note above). Anything that changes what data is stored (schema) or how core
+interactions work (the timer state machine, navigation history stack, click-away/selection logic)
+is the higher-effort/higher-risk category — the navigation stack and click-away filters in
+particular are subtle enough that Step 8's comment pass should prioritize them.
